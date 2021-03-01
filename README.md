@@ -8,13 +8,13 @@ York University  &nbsp;&nbsp;
 
 ![teaser](https://user-images.githubusercontent.com/37669469/100063951-e497dc00-2dff-11eb-8454-98f720fe7d04.jpg)
 
-Reference code for the paper [HistoGAN: Controlling Colors of GAN-Generated and Real Images via Color Histograms.](https://arxiv.org/abs/2011.11731) Mahmoud Afifi, Marcus A. Brubaker, and Michael S. Brown, arXiv preprint arXiv:2011.11731, 2020. If you use this code or our dataset, please cite our paper:
+Reference code for the paper [HistoGAN: Controlling Colors of GAN-Generated and Real Images via Color Histograms.](https://arxiv.org/abs/2011.11731) Mahmoud Afifi, Marcus A. Brubaker, and Michael S. Brown. In CVPR, 2021. If you use this code or our dataset, please cite our paper:
 ```
-@article{afifi2020histogan,
+@inproceedings{afifi2021histogan,
   title={HistoGAN: Controlling Colors of GAN-Generated and Real Images via Color Histograms},
   author={Afifi, Mahmoud and Brubaker, Marcus A. and Brown, Michael S.},
-  journal={arXiv preprint arXiv:2011.11731},
-  year={2020}
+  booktitle={Proceedings of the IEEE Conference on Computer Vision and Pattern Recognition},
+  year={2021}
 }
 ```
 
