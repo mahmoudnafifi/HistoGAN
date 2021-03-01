@@ -39,7 +39,6 @@ Our collected set of 4K landscape images is available [here](https://ln2.sync.co
 
 
 ### Related Research Projects
-### Related Research Projects
 - sRGB Image White Balancing:
   - [When Color Constancy Goes Wrong](https://github.com/mahmoudnafifi/WB_sRGB): The first work for white-balancing camera-rendered sRGB images (CVPR 2019).
   - [White-Balance Augmenter](https://github.com/mahmoudnafifi/WB_color_augmenter): Emulating white-balance effects for color augmentation; it improves the accuracy of image classification and image semantic segmentation methods (ICCV 2019).
