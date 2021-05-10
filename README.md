@@ -28,7 +28,8 @@ In this paper, we present HistoGAN, a color histogram-based method for controlli
 
 
 ### Code
-The code will be available soon!
+We provide a [Colab notebook example](https://colab.research.google.com/drive/1dAF1_oAQ1c8OMLqlYA5V878pmpcnQ6_9?usp=sharing) code to compute our histogram loss. 
+The rest of our code will be available soon!
 
 
 ### Landscape Dataset
