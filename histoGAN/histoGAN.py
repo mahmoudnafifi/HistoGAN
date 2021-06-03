@@ -785,8 +785,7 @@ class HistoGAN(nn.Module):
 
     if fp16:
       (self.S, self.G, self.D, self.H, self.SE, self.HE, self.GE), (
-        self.G_opt, self.D_opt) = \
-        amp.initialize(
+        self.G_opt, self.D_opt) = amp.initialize(
           [self.S, self.G, self.D, self.H, self.SE, self.HE, self.GE],
           [self.G_opt, self.D_opt],
           opt_level='O2')
@@ -1040,8 +1039,7 @@ class Trainer():
       histogram_loss = alpha * SCALE * (torch.sqrt(
         torch.sum(
           torch.pow(torch.sqrt(hist_batch) - torch.sqrt(generated_histograms),
-                    2)))) / \
-                       hist_batch.shape[0]
+                    2)))) / hist_batch.shape[0]
 
       loss = fake_output.mean()
       gen_loss = loss + histogram_loss
