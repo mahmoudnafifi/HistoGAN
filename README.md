@@ -85,6 +85,8 @@ Generated samples will be located in `./results_HistoGAN/Faces_histoGAN`.
 Another example is given below, where we use a fixed input noise and style vectors for the first blocks of the generator network, while we change the input histograms. In this example, we first use `--save_noise_latent = True` to save the noise and latent data for the first blocks. Then, we load the saved noise and latent files, using `--target_noise_file` and `--target_latent_file`, to generate the same samples but with different color histograms. 
 
 ```python histoGAN.py --name Faces_histoGAN --generate True --target_his ./target_images/1.jpg --save_noise_latent True --gpu 0```
+
+
 ```python histoGAN.py --name Faces_histoGAN --generate True --target_his ./target_images/ --target_noise_file ./temp/Face_histoGAN/noise.py --target_latent_file ./temp/Faces_histoGAN/latents.npy --gpu 0```
 
 
