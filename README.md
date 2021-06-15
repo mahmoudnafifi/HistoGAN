@@ -6,6 +6,8 @@ and [Michael S. Brown](http://www.cse.yorku.ca/~mbrown/)
 
 York University  &nbsp;&nbsp; 
 
+[Paper](https://openaccess.thecvf.com/content/CVPR2021/papers/Afifi_HistoGAN_Controlling_Colors_of_GAN-Generated_and_Real_Images_via_Color_CVPR_2021_paper.pdf) | [Supplementary Materials](https://openaccess.thecvf.com/content/CVPR2021/supplemental/Afifi_HistoGAN_Controlling_Colors_CVPR_2021_supplemental.pdf) | [Video](https://www.youtube.com/watch?v=uMN85KBV4Rw) | [Poster](https://drive.google.com/file/d/1AQNnodTUFOtTKSaXPbNEUAEbLbQNZDvE/view) | [PPT](https://drive.google.com/file/d/167rFIDyUS368yecMSXPKQYzj73pY282i/view)
+
 ![teaser](https://user-images.githubusercontent.com/37669469/100063951-e497dc00-2dff-11eb-8454-98f720fe7d04.jpg)
 
 Reference code for the paper [HistoGAN: Controlling Colors of GAN-Generated and Real Images via Color Histograms.](https://arxiv.org/abs/2011.11731) Mahmoud Afifi, Marcus A. Brubaker, and Michael S. Brown. In CVPR, 2021. If you use this code or our dataset, please cite our paper:
