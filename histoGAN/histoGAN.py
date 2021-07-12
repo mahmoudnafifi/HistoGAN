@@ -1019,12 +1019,13 @@ class Trainer():
     num_layers = self.GAN.G.num_layers
 
     aug_prob = self.aug_prob
+
     if aug_prob > 0.0:
+      Disc = self.GAN.D_aug
       aug_types = self.aug_types
       aug_kwargs = {'prob': aug_prob, 'types': aug_types}
-      D_aug = self.GAN.D_aug
     else:
-      D_aug = self.GAN.D
+      Disc = self.GAN.D
 
     apply_gradient_penalty = self.steps % 4 == 0
     apply_path_penalty = self.steps % 32 == 0
@@ -1049,9 +1050,14 @@ class Trainer():
       h_w_space = torch.cat((h_w_space, h_w_space), dim=1)
       w_styles = styles_def_to_tensor(w_space)
       generated_images = self.GAN.G(w_styles, h_w_space, noise)
-      fake_output, fake_q_loss = D_aug(generated_images.clone().detach(),
-                                       detach=True, **aug_kwargs)
-      real_output, real_q_loss = D_aug(image_batch, **aug_kwargs)
+      if aug_prob > 0.0:
+        fake_output, fake_q_loss = Disc(generated_images.clone().detach(),
+                                         detach=True, **aug_kwargs)
+        real_output, real_q_loss = Disc(image_batch, **aug_kwargs)
+      else:
+        fake_output, fake_q_loss = Disc(generated_images.clone().detach())
+        real_output, real_q_loss = Disc(image_batch)
+
       divergence = (F.relu(1 + real_output) + F.relu(1 - fake_output)).mean()
       disc_loss = divergence
       quantize_loss = (fake_q_loss + real_q_loss).mean()
@@ -1089,7 +1095,10 @@ class Trainer():
       w_styles = styles_def_to_tensor(w_space)
 
       generated_images = self.GAN.G(w_styles, h_w_space, noise)
-      fake_output, _ = D_aug(generated_images, **aug_kwargs)
+      if aug_prob > 0.0:
+        fake_output, _ = Disc(generated_images, **aug_kwargs)
+      else:
+        fake_output, _ = Disc(generated_images)
 
       generated_histograms = self.histBlock(F.relu(generated_images))
 
