@@ -29,6 +29,9 @@ In this paper, we present HistoGAN, a color histogram-based method for controlli
  </p>
 
 
+## Updates
+* [2021-07-21] Augmentation: Simple version of [adaptive discriminator augmentation mechanism](https://arxiv.org/pdf/2006.06676.pdf) is now available in the training options.
+
 ## Code
 
 
@@ -42,7 +45,7 @@ In this paper, we present HistoGAN, a color histogram-based method for controlli
 * torch-optimizer
 * retry
 
-Conda commands:
+Conda & pip commands:
 ```
 conda create -n histoGAN python=3.6 numpy=1.13.3 scipy 
 conda activate histoGAN
@@ -111,13 +114,16 @@ Additional useful parameters are given below.
 * `--target_noise_file`: To load noise from a saved file (for testing) 
 * `--target_latent_file`: To load latent from a saved file (for testing).
 * `--num_image_tiles`: Number of image tiles to generate. 
-* `--gpu`: CUDA device ID. 
+* `--gpu`: CUDA device ID.
+* `--aug_types`: Options include: `translation`, `cutout`, and `color`. Example: `--aug_types translation cutout`.
+* `--dataset_aug_prob`: Probability of dataset augmentation: applies random cropping
+* `--aug_prob`: Probability of discriminator augmentation. It applies operations specified in `--aug_types`. Its value should be between `0.0` - `0.7` as recommended [here](https://github.com/lucidrains/stylegan2-pytorch).
 * `--hist_bin`: Number of bins in the histogram feature. 
 * `--hist_insz`: Maximum size of the image before computing the histogram feature. 
 * `--hist_method`: "Counting" method used to construct histograms. Options include: `inverse-quadratic` kernel, `RBF` kernel, or `thresholding`.  
 * `--hist_resizing`: If `--hist_insz` doesn't match the input image size, the image is resized based on the resizing method. Resizing options are: `interpolation` or `sampling`. 
 * `--hist_sigma`: If one of the kernel methods used to compute the histogram feature (specified in `--hist_method`), this is the kernel sigma parameter. 
-* `--alpha`: histogram loss scale factor (for training). 
+* `--alpha`: histogram loss scale factor (for training).
 
 
 #### Trained models
