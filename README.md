@@ -6,6 +6,8 @@ and [Michael S. Brown](http://www.cse.yorku.ca/~mbrown/)
 
 York University  &nbsp;&nbsp; 
 
+[Paper](https://openaccess.thecvf.com/content/CVPR2021/papers/Afifi_HistoGAN_Controlling_Colors_of_GAN-Generated_and_Real_Images_via_Color_CVPR_2021_paper.pdf) | [Supplementary Materials](https://openaccess.thecvf.com/content/CVPR2021/supplemental/Afifi_HistoGAN_Controlling_Colors_CVPR_2021_supplemental.pdf) | [Video](https://www.youtube.com/watch?v=uMN85KBV4Rw) | [Poster](https://drive.google.com/file/d/1AQNnodTUFOtTKSaXPbNEUAEbLbQNZDvE/view) | [PPT](https://drive.google.com/file/d/167rFIDyUS368yecMSXPKQYzj73pY282i/view)
+
 ![teaser](https://user-images.githubusercontent.com/37669469/100063951-e497dc00-2dff-11eb-8454-98f720fe7d04.jpg)
 
 Reference code for the paper [HistoGAN: Controlling Colors of GAN-Generated and Real Images via Color Histograms.](https://arxiv.org/abs/2011.11731) Mahmoud Afifi, Marcus A. Brubaker, and Michael S. Brown. In CVPR, 2021. If you use this code or our dataset, please cite our paper:
@@ -27,6 +29,9 @@ In this paper, we present HistoGAN, a color histogram-based method for controlli
  </p>
 
 
+## Updates
+* [2021-07-21] Augmentation: Simple version of [adaptive discriminator augmentation mechanism](https://arxiv.org/pdf/2006.06676.pdf) is now available in the training options.
+
 ## Code
 
 
@@ -40,7 +45,7 @@ In this paper, we present HistoGAN, a color histogram-based method for controlli
 * torch-optimizer
 * retry
 
-Conda commands:
+Conda & pip commands:
 ```
 conda create -n histoGAN python=3.6 numpy=1.13.3 scipy 
 conda activate histoGAN
@@ -109,13 +114,16 @@ Additional useful parameters are given below.
 * `--target_noise_file`: To load noise from a saved file (for testing) 
 * `--target_latent_file`: To load latent from a saved file (for testing).
 * `--num_image_tiles`: Number of image tiles to generate. 
-* `--gpu`: CUDA device ID. 
+* `--gpu`: CUDA device ID.
+* `--aug_types`: Options include: `translation`, `cutout`, and `color`. Example: `--aug_types translation cutout`.
+* `--dataset_aug_prob`: Probability of dataset augmentation: applies random cropping
+* `--aug_prob`: Probability of discriminator augmentation. It applies operations specified in `--aug_types`. Its value should be between `0.0` - `0.7` as recommended [here](https://github.com/lucidrains/stylegan2-pytorch).
 * `--hist_bin`: Number of bins in the histogram feature. 
 * `--hist_insz`: Maximum size of the image before computing the histogram feature. 
 * `--hist_method`: "Counting" method used to construct histograms. Options include: `inverse-quadratic` kernel, `RBF` kernel, or `thresholding`.  
 * `--hist_resizing`: If `--hist_insz` doesn't match the input image size, the image is resized based on the resizing method. Resizing options are: `interpolation` or `sampling`. 
 * `--hist_sigma`: If one of the kernel methods used to compute the histogram feature (specified in `--hist_method`), this is the kernel sigma parameter. 
-* `--alpha`: histogram loss scale factor (for training). 
+* `--alpha`: histogram loss scale factor (for training).
 
 
 #### Trained models
