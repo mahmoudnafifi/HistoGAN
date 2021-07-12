@@ -73,6 +73,7 @@ class Flatten(nn.Module):
   def forward(self, x):
     return x.reshape(x.shape[0], -1)
 
+
 class RandomApply(nn.Module):
   def __init__(self, prob, fn, fn_else=lambda x: x):
     super().__init__()
@@ -83,6 +84,7 @@ class RandomApply(nn.Module):
   def forward(self, x):
     fn = self.fn if random() < self.prob else self.fn_else
     return fn(x)
+
 
 class Residual(nn.Module):
   def __init__(self, fn):
@@ -304,13 +306,13 @@ class Dataset(data.Dataset):
       return {'histograms': torch.squeeze(hist)}
 
 
-
 # augmentations
 
 def random_hflip(tensor, prob):
   if prob > random():
     return tensor
   return torch.flip(tensor, dims=(3,))
+
 
 class AugWrapper(nn.Module):
   def __init__(self, D):
@@ -326,6 +328,7 @@ class AugWrapper(nn.Module):
       images = images.detach()
 
     return self.D(images)
+
 
 # Hist module
 class RGBuvHistBlock(nn.Module):
@@ -779,10 +782,11 @@ class HistoGAN(nn.Module):
   def __init__(self, image_size, latent_dim=512, style_depth=8,
                network_capacity=16, transparent=False, fp16=False,
                steps=1, lr=1e-4, fq_layers=[], fq_dict_size=256, attn_layers=[],
-               hist=64):
+               aug=False, hist=64):
     super().__init__()
 
     self.lr = lr
+    self.aug = aug
     self.steps = steps
     self.ema_updater = EMA(0.995)
     self.S = StyleVectorizer(latent_dim, style_depth)
@@ -799,7 +803,10 @@ class HistoGAN(nn.Module):
                         transparent=transparent)
 
     # wrapper for augmenting all images going into the discriminator
-    self.D_aug = AugWrapper(self.D)
+    if self.aug:
+      self.D_aug = AugWrapper(self.D)
+    else:
+      self.D_aug = None
 
     set_requires_grad(self.SE, False)
     set_requires_grad(self.HE, False)
@@ -941,7 +948,8 @@ class Trainer():
                         fq_layers=self.fq_layers,
                         fq_dict_size=self.fq_dict_size,
                         attn_layers=self.attn_layers, fp16=self.fp16,
-                        hist=self.hist_bin, *args, **kwargs)
+                        hist=self.hist_bin, aug=self.aug_prob > 0,
+                        *args, **kwargs)
 
   def write_config(self):
     self.config_path.write_text(json.dumps(self.config()))
@@ -1011,13 +1019,15 @@ class Trainer():
     num_layers = self.GAN.G.num_layers
 
     aug_prob = self.aug_prob
-    aug_types = self.aug_types
-    aug_kwargs = {'prob': aug_prob, 'types': aug_types}
+    if aug_prob > 0.0:
+      aug_types = self.aug_types
+      aug_kwargs = {'prob': aug_prob, 'types': aug_types}
+      D_aug = self.GAN.D_aug
+    else:
+      D_aug = self.GAN.D
 
     apply_gradient_penalty = self.steps % 4 == 0
     apply_path_penalty = self.steps % 32 == 0
-
-    D_aug = self.GAN.D_aug
 
     backwards = partial(loss_backwards, self.fp16)
 
@@ -1190,7 +1200,6 @@ class Trainer():
 
     return generated_images
 
-
   @torch.no_grad()
   def generate_truncated(self, S, H, G, hist_batch, style, noi, trunc_psi=0.75):
     latent_dim = G.latent_dim
@@ -1224,13 +1233,13 @@ class Trainer():
     if hasattr(self, 'h_loss'):
       print(
         f'\nG: {self.g_loss:.2f} | H: {self.h_loss:.2f} | D: '
-        f'{self.d_loss:.2f} | GP: {self.last_gp_loss:.2f}' 
+        f'{self.d_loss:.2f} | GP: {self.last_gp_loss:.2f}'
         f' | PL: {self.pl_mean:.2f} | CR: {self.last_cr_loss:.2f} | Q: '
         f'{self.q_loss:.2f}')
     else:
       print(
         f'\nG: {self.g_loss:.2f} | D: {self.d_loss:.2f} | GP: '
-        f'{self.last_gp_loss:.2f}' 
+        f'{self.last_gp_loss:.2f}'
         f' | PL: {self.pl_mean:.2f} | CR: {self.last_cr_loss:.2f} | Q: '
         f'{self.q_loss:.2f}')
 
