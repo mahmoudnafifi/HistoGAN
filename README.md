@@ -106,6 +106,7 @@ Additional useful parameters are given below.
 * `--data`: Dataset directory (for training).
 * `--new`: Set to True to train a new model. If `--new = False`, it will start training/evaluation from the last saved model. 
 * `--image_size`: Output image size (should be a power of 2). 
+* `--batch_size` and `--gradient_accumulate_every`: To control the size of mini-batch and the accumulation in computing the gradient. 
 * `--network_capacity`: To control network capacity.
 * `--results_dir`: Results directory (for testing and evaluation during training).
 * `--target_hist`: Target histogram (image, npy file of target histogram, or directory of either images or histogram files). To generate a histogram of images, check `create_hist_sample.py`. 
