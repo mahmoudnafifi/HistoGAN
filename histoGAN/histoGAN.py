@@ -20,23 +20,20 @@ from random import random
 from shutil import rmtree
 from functools import partial
 import multiprocessing
-from tqdm import tqdm
 import numpy as np
 import torch
 from torch import nn
 from torch.utils import data
 import torch.nn.functional as F
-
 from torch_optimizer import DiffGrad
 from torch.autograd import grad as torch_grad
-
 import torchvision
 from torchvision import transforms
-
 from vector_quantize_pytorch import VectorQuantize
 from linear_attention_transformer import ImageLinearAttention
 from PIL import Image
 from pathlib import Path
+from utils.diff_augment import DiffAugment
 
 try:
   from apex import amp
@@ -76,6 +73,16 @@ class Flatten(nn.Module):
   def forward(self, x):
     return x.reshape(x.shape[0], -1)
 
+class RandomApply(nn.Module):
+  def __init__(self, prob, fn, fn_else=lambda x: x):
+    super().__init__()
+    self.fn = fn
+    self.fn_else = fn_else
+    self.prob = prob
+
+  def forward(self, x):
+    fn = self.fn if random() < self.prob else self.fn_else
+    return fn(x)
 
 class Residual(nn.Module):
   def __init__(self, fn):
@@ -149,8 +156,7 @@ def gradient_penalty(images, output, weight=10):
                          grad_outputs=torch.ones(output.size()).cuda(),
                          create_graph=True, retain_graph=True,
                          only_inputs=True)[0]
-
-  gradients = gradients.view(batch_size, -1)
+  gradients = gradients.reshape(batch_size, -1)
   return weight * ((gradients.norm(2, dim=1) - 1) ** 2).mean()
 
 
@@ -243,9 +249,8 @@ def resize_to_minimum_size(min_size, image):
 
 class Dataset(data.Dataset):
   def __init__(self, folder, image_size=256, transparent=False, hist_insz=150,
-               hist_bin=64,
-               hist_method='inverse-quadratic', hist_resizing='sampling',
-               test=False):
+               hist_bin=64, hist_method='inverse-quadratic',
+               hist_resizing='sampling', test=False, aug_prob=0.0):
     super().__init__()
     self.folder = folder
     self.image_size = image_size
@@ -263,10 +268,11 @@ class Dataset(data.Dataset):
     if self.test is False:
       self.transform = transforms.Compose([
         transforms.Lambda(convert_image_fn),
-        transforms.Lambda(partial(resize_to_minimum_size, image_size)),
-        transforms.RandomHorizontalFlip(),
-        transforms.Resize(image_size),
-        transforms.CenterCrop(image_size),
+        transforms.Lambda(partial(resize_to_minimum_size, self.image_size)),
+        transforms.Resize(self.image_size),
+        RandomApply(aug_prob, transforms.RandomResizedCrop(
+          self.image_size, scale=(0.5, 1.0), ratio=(0.98, 1.02)),
+                    transforms.CenterCrop(self.image_size)),
         transforms.ToTensor(),
         transforms.Lambda(expand_greyscale(num_channels))
       ])
@@ -297,6 +303,29 @@ class Dataset(data.Dataset):
       hist = self.histblock(torch.unsqueeze(self.transform_hist(img), dim=0))
       return {'histograms': torch.squeeze(hist)}
 
+
+
+# augmentations
+
+def random_hflip(tensor, prob):
+  if prob > random():
+    return tensor
+  return torch.flip(tensor, dims=(3,))
+
+class AugWrapper(nn.Module):
+  def __init__(self, D):
+    super().__init__()
+    self.D = D
+
+  def forward(self, images, prob=0., types=[], detach=False):
+    if random() < prob:
+      images = random_hflip(images, prob=0.5)
+      images = DiffAugment(images, types=types)
+
+    if detach:
+      images = images.detach()
+
+    return self.D(images)
 
 # Hist module
 class RGBuvHistBlock(nn.Module):
@@ -769,6 +798,9 @@ class HistoGAN(nn.Module):
     self.GE = Generator(image_size, latent_dim, network_capacity,
                         transparent=transparent)
 
+    # wrapper for augmenting all images going into the discriminator
+    self.D_aug = AugWrapper(self.D)
+
     set_requires_grad(self.SE, False)
     set_requires_grad(self.HE, False)
     set_requires_grad(self.GE, False)
@@ -785,7 +817,8 @@ class HistoGAN(nn.Module):
 
     if fp16:
       (self.S, self.G, self.D, self.H, self.SE, self.HE, self.GE), (
-        self.G_opt, self.D_opt) = amp.initialize(
+        self.G_opt, self.D_opt) = \
+        amp.initialize(
           [self.S, self.G, self.D, self.H, self.SE, self.HE, self.GE],
           [self.G_opt, self.D_opt],
           opt_level='O2')
@@ -830,9 +863,11 @@ class Trainer():
                fp16=False, fq_layers=[], fq_dict_size=256, attn_layers=[],
                hist_method='inverse-quadratic',
                hist_resizing='sampling', hist_sigma=0.02, hist_bin=64,
-               hist_insz=150,
-               *args, **kwargs):
+               hist_insz=150, aug_prob=0.0, dataset_aug_prob=0.0,
+               aug_types=None, *args, **kwargs):
 
+    if aug_types is None:
+      aug_types = ['translation', 'cutout']
     self.GAN_params = [args, kwargs]
     self.GAN = None
     self.hist_method = hist_method
@@ -860,6 +895,10 @@ class Trainer():
     self.fq_dict_size = fq_dict_size
 
     self.attn_layers = cast_list(attn_layers)
+
+    self.aug_prob = aug_prob
+    self.aug_types = aug_types
+    self.dataset_aug_prob = dataset_aug_prob
 
     self.lr = lr
     self.batch_size = batch_size
@@ -930,7 +969,8 @@ class Trainer():
                            transparent=self.transparent,
                            hist_insz=self.hist_insz, hist_bin=self.hist_bin,
                            hist_method=self.hist_method,
-                           hist_resizing=self.hist_resizing)
+                           hist_resizing=self.hist_resizing,
+                           aug_prob=self.dataset_aug_prob)
     self.loader = cycle(data.DataLoader(self.dataset,
                                         num_workers=default(self.num_workers,
                                                             num_cores),
@@ -970,8 +1010,14 @@ class Trainer():
     latent_dim = self.GAN.G.latent_dim
     num_layers = self.GAN.G.num_layers
 
+    aug_prob = self.aug_prob
+    aug_types = self.aug_types
+    aug_kwargs = {'prob': aug_prob, 'types': aug_types}
+
     apply_gradient_penalty = self.steps % 4 == 0
     apply_path_penalty = self.steps % 32 == 0
+
+    D_aug = self.GAN.D_aug
 
     backwards = partial(loss_backwards, self.fp16)
 
@@ -993,8 +1039,9 @@ class Trainer():
       h_w_space = torch.cat((h_w_space, h_w_space), dim=1)
       w_styles = styles_def_to_tensor(w_space)
       generated_images = self.GAN.G(w_styles, h_w_space, noise)
-      fake_output, fake_q_loss = self.GAN.D(generated_images.clone().detach())
-      real_output, real_q_loss = self.GAN.D(image_batch)
+      fake_output, fake_q_loss = D_aug(generated_images.clone().detach(),
+                                       detach=True, **aug_kwargs)
+      real_output, real_q_loss = D_aug(image_batch, **aug_kwargs)
       divergence = (F.relu(1 + real_output) + F.relu(1 - fake_output)).mean()
       disc_loss = divergence
       quantize_loss = (fake_q_loss + real_q_loss).mean()
@@ -1032,7 +1079,7 @@ class Trainer():
       w_styles = styles_def_to_tensor(w_space)
 
       generated_images = self.GAN.G(w_styles, h_w_space, noise)
-      fake_output, _ = self.GAN.D(generated_images)
+      fake_output, _ = D_aug(generated_images, **aug_kwargs)
 
       generated_histograms = self.histBlock(F.relu(generated_images))
 

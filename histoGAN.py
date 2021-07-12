@@ -60,7 +60,10 @@ def train_from_folder(
     hist_bin=64,
     hist_insz=150,
     alpha=2,
-    target_hist=None):
+    target_hist=None,
+    aug_prob=0.0,
+    dataset_aug_prob=0.0,
+    aug_types=None):
   model = Trainer(
     name,
     results_dir,
@@ -83,6 +86,9 @@ def train_from_folder(
     hist_sigma=hist_sigma,
     hist_resizing=hist_resizing,
     hist_method=hist_method,
+    aug_prob=aug_prob,
+    dataset_aug_prob=dataset_aug_prob,
+    aug_types=aug_types
   )
 
   if not new:
@@ -224,7 +230,7 @@ def get_args():
                       default=16, type=int)
   parser.add_argument('--trunc_psi', dest='trunc_psi', default=0.75,
                       type=float)
-  parser.add_argument('--fp16', dest='fp16', default=False)
+  parser.add_argument('--fp 16', dest='fp16', default=False)
   parser.add_argument('--fq_layers', dest='fq_layers', default=[])
   parser.add_argument('--fq_dict_size', dest='fq_dict_size', default=256,
                       type=int)
@@ -239,6 +245,16 @@ def get_args():
   parser.add_argument('--hist_sigma', dest='hist_sigma', default=0.02,
                       type=float)
   parser.add_argument('--alpha', dest='alpha', default=2, type=float)
+  parser.add_argument('--aug_prob', dest='aug_prob', default=0.0, type=float,
+                      help='Probability of discriminator augmentation. It '
+                           'applies operations specified in --aug_types.')
+  parser.add_argument('--dataset_aug_prob', dest='dataset_aug_prob',
+                      default=0.0, type=float,
+                      help='Probability of dataset augmentation. It applies '
+                           'random cropping')
+  parser.add_argument('--aug_types', dest='aug_types',
+                      default=['translation', 'cutout'], nargs='+',
+                      help='Options include: translation, cutout, and color')
 
   return parser.parse_args()
 
@@ -279,5 +295,8 @@ if __name__ == "__main__":
     hist_bin=args.hist_bin,
     hist_insz=args.hist_insz,
     target_hist=args.target_hist,
-    alpha=args.alpha
+    alpha=args.alpha,
+    aug_prob=args.aug_prob,
+    dataset_aug_prob=args.dataset_aug_prob,
+    aug_types=args.aug_types
   )
