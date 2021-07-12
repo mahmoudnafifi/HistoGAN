@@ -29,9 +29,6 @@ In this paper, we present HistoGAN, a color histogram-based method for controlli
  </p>
 
 
-## Updates
-* [2021-07-21] Augmentation: Simple version of [adaptive discriminator augmentation mechanism](https://arxiv.org/pdf/2006.06676.pdf) is now available in the training options.
-
 ## Code
 
 
