@@ -115,7 +115,7 @@ Additional useful parameters are given below.
 * `--gpu`: CUDA device ID.
 * `--aug_types`: Options include: `translation`, `cutout`, and `color`. Example: `--aug_types translation cutout`.
 * `--dataset_aug_prob`: Probability of dataset augmentation: applies random cropping
-* `--aug_prob`: Probability of discriminator augmentation. It applies operations specified in `--aug_types`. Its value should be between `0.0` - `0.7` as recommended [here](https://github.com/lucidrains/stylegan2-pytorch).
+* `--aug_prob`: Probability of discriminator augmentation. It applies operations specified in `--aug_types`. Note that if you use `--aug_prob > 0.0` to train the model, you should use `--aug_prob > 0.0` in testing as well to work properly.
 * `--hist_bin`: Number of bins in the histogram feature. 
 * `--hist_insz`: Maximum size of the image before computing the histogram feature. 
 * `--hist_method`: "Counting" method used to construct histograms. Options include: `inverse-quadratic` kernel, `RBF` kernel, or `thresholding`.  
