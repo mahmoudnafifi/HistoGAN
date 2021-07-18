@@ -105,7 +105,7 @@ Additional useful parameters are given below.
 * `--image_size`: Output image size (should be a power of 2). 
 * `--batch_size` and `--gradient_accumulate_every`: To control the size of mini-batch and the accumulation in computing the gradient. 
 * `--network_capacity`: To control network capacity.
-* `--attn-layers`: To add a self-attention to the designated layer(s) of the discriminator (and the corresponding layer(s) of the generator). For example, if you would like to add a self-attention layer after the output of the 1st and 2nd layers, use `--attn-layers [1,2]`. In our training, we did not use any attention layers, but it could improve the results if added. 
+* `--attn_layers`: To add a self-attention to the designated layer(s) of the discriminator (and the corresponding layer(s) of the generator). For example, if you would like to add a self-attention layer after the output of the 1st and 2nd layers, use `--attn_layers [1,2]`. In our training, we did not use any attention layers, but it could improve the results if added. 
 * `--results_dir`: Results directory (for testing and evaluation during training).
 * `--target_hist`: Target histogram (image, npy file of target histogram, or directory of either images or histogram files). To generate a histogram of images, check `create_hist_sample.py`. 
 * `--generate`: Set to True for testing. 
@@ -126,7 +126,7 @@ Additional useful parameters are given below.
 
 
 #### Trained models
-As mentioned in the paper, we trained HistoGAN on several datasets. Our pre-trained models trained using `--network_capacity = 16` and `--image_size = 256` due to hardware limitations. **Better results can be achieved by increasing the network capacity and using attention layers (--attn-layers).** Here are examples of our trained models (note: these models include both generator and discriminator nets):
+As mentioned in the paper, we trained HistoGAN on several datasets. Our pre-trained models trained using `--network_capacity = 16` and `--image_size = 256` due to hardware limitations. **Better results can be achieved by increasing the network capacity and using attention layers (--attn_layers).** Here are examples of our trained models (note: these models include both generator and discriminator nets):
 
 * [Faces](https://ln3.sync.com/dl/ef2cce1a0/c7frehvr-kaexbw44-tvupizhg-xyqjvp98) | [Google Drive mirror](https://drive.google.com/file/d/1jkJBzXsakEtuVEwQqTCBb_R_Kefa2XJ1/view?usp=sharing)
 * [Cars](https://ln3.sync.com/dl/5c2bc1a60/y3sx9dnq-m5gcspa5-6zz9d4fd-7j3yemca)
