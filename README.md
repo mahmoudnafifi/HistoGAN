@@ -105,7 +105,7 @@ Additional useful parameters are given below.
 * `--image_size`: Output image size (should be a power of 2). 
 * `--batch_size` and `--gradient_accumulate_every`: To control the size of mini-batch and the accumulation in computing the gradient. 
 * `--network_capacity`: To control network capacity.
-* `--attn_layers`: To add a self-attention to the designated layer(s) of the discriminator (and the corresponding layer(s) of the generator). For example, if you would like to add a self-attention layer after the output of the 1st and 2nd layers, use `--attn_layers [1,2]`. In our training, we did not use any attention layers, but it could improve the results if added. 
+* `--attn_layers`: To add a self-attention to the designated layer(s) of the discriminator (and the corresponding layer(s) of the generator). For example, if you would like to add a self-attention layer after the output of the 1st and 2nd layers, use `--attn_layers 1,2`. In our training, we did not use any attention layers, but it could improve the results if added. 
 * `--results_dir`: Results directory (for testing and evaluation during training).
 * `--target_hist`: Target histogram (image, npy file of target histogram, or directory of either images or histogram files). To generate a histogram of images, check `create_hist_sample.py`. 
 * `--generate`: Set to True for testing. 
