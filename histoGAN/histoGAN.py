@@ -34,6 +34,7 @@ from linear_attention_transformer import ImageLinearAttention
 from PIL import Image
 from pathlib import Path
 from utils.diff_augment import DiffAugment
+from histogram_classes.RGBuvHistBlock import RGBuvHistBlock
 
 try:
   from apex import amp
@@ -185,7 +186,7 @@ def latent_to_w(style_vectorizer, latent_descr):
 
 
 def image_noise(n, im_size):
-  return torch.FloatTensor(n, im_size, im_size, 1).uniform_(0., 1.).cuda()
+  return torch.FloatTensor(n, im_size, im_size, 1).uniform_(0.0, 1.0).cuda()
 
 
 def leaky_relu(p=0.2):
@@ -319,7 +320,7 @@ class AugWrapper(nn.Module):
     super().__init__()
     self.D = D
 
-  def forward(self, images, prob=0., types=[], detach=False):
+  def forward(self, images, prob=0.0, types=[], detach=False):
     if random() < prob:
       images = random_hflip(images, prob=0.5)
       images = DiffAugment(images, types=types)
@@ -329,187 +330,6 @@ class AugWrapper(nn.Module):
 
     return self.D(images)
 
-
-# Hist module
-class RGBuvHistBlock(nn.Module):
-  def __init__(self, h=64, insz=150, resizing='interpolation',
-               method='thresholding', sigma=0.02, device='cuda'):
-    """ Computes the RGB-uv histogram feature of a given image.
-    Args:
-      h: histogram dimension size (scalar). The default value is 64.
-      insz: maximum size of the input image; if it is larger than this size, the
-        image will be resized (scalar). Default value is 150 (i.e., 150 x 150
-        pixels).
-      resizing: resizing method if applicable. Options are: 'interpolation' or
-        'sampling'. Default is 'interpolation'.
-      method: the method used to count the number of pixels for each bin in the
-        histogram feature. Options are: 'thresholding', 'RBF' (radial basis
-        function), or 'inverse-quadratic'. Default value is 'inverse-quadratic'.
-      sigma: if the method value is 'RBF' or 'inverse-quadratic', then this is
-        the sigma parameter of the kernel function. The default value is 0.02.
-      intensity_scale: boolean variable to use the intensity scale (I_y in
-        Equation 2). Default value is True.
-
-    Methods:
-      forward: accepts input image and returns its histogram feature. Note that
-        unless the method is 'thresholding', this is a differentiable function
-        and can be easily integrated with the loss function. As mentioned in the
-         paper, the 'inverse-quadratic' was found more stable than 'RBF' in our
-         training.
-    """
-    super(RGBuvHistBlock, self).__init__()
-    self.h = h
-    self.insz = insz
-    self.device = device
-    self.resizing = resizing
-    self.method = method
-    if self.method == 'thresholding':
-      self.eps = 6.0 / h
-    else:
-      self.sigma = sigma
-
-  def forward(self, x):
-    x = torch.clamp(x, 0, 1)
-    if x.shape[2] > self.insz or x.shape[3] > self.insz:
-      if self.resizing == 'interpolation':
-        x_sampled = F.interpolate(x, size=(self.insz, self.insz),
-                                  mode='bilinear', align_corners=False)
-      elif self.resizing == 'sampling':
-        inds_1 = torch.LongTensor(
-          np.linspace(0, x.shape[2], self.h, endpoint=False)).to(
-          device=self.device)
-        inds_2 = torch.LongTensor(
-          np.linspace(0, x.shape[3], self.h, endpoint=False)).to(
-          device=self.device)
-        x_sampled = x.index_select(2, inds_1)
-        x_sampled = x_sampled.index_select(3, inds_2)
-      else:
-        raise Exception(
-          f'Wrong resizing method. It should be: interpolation or sampling. '
-          f'But the given value is {self.resizing}.')
-    else:
-      x_sampled = x
-
-    L = x_sampled.shape[0]  # size of mini-batch
-    # print("size is %d" % L)
-    if x_sampled.shape[1] > 3:
-      x_sampled = x_sampled[:, :3, :, :]
-    X = torch.unbind(x_sampled, dim=0)
-    hists = torch.zeros((x_sampled.shape[0], 3, self.h, self.h)).to(
-      device=self.device)
-    for l in range(L):
-      I = torch.t(torch.reshape(X[l], (3, -1)))
-      II = torch.pow(I, 2)
-      Iy = torch.unsqueeze(torch.sqrt(II[:, 0] + II[:, 1] + II[:, 2] + EPS),
-                           dim=1)
-
-      Iu0 = torch.unsqueeze(torch.log(I[:, 0] + EPS) - torch.log(I[:, 1] + EPS),
-                            dim=1)
-      Iv0 = torch.unsqueeze(torch.log(I[:, 0] + EPS) - torch.log(I[:, 2] + EPS),
-                            dim=1)
-      diff_u0 = abs(
-        Iu0 - torch.unsqueeze(torch.tensor(np.linspace(-3, 3, num=self.h)),
-                              dim=0).to(self.device))
-      diff_v0 = abs(
-        Iv0 - torch.unsqueeze(torch.tensor(np.linspace(-3, 3, num=self.h)),
-                              dim=0).to(self.device))
-      if self.method == 'thresholding':
-        diff_u0 = torch.reshape(diff_u0, (-1, self.h)) <= self.eps / 2
-        diff_v0 = torch.reshape(diff_v0, (-1, self.h)) <= self.eps / 2
-      elif self.method == 'RBF':
-        diff_u0 = torch.pow(torch.reshape(diff_u0, (-1, self.h)),
-                            2) / self.sigma ** 2
-        diff_v0 = torch.pow(torch.reshape(diff_v0, (-1, self.h)),
-                            2) / self.sigma ** 2
-        diff_u0 = torch.exp(-diff_u0)  # Gaussian
-        diff_v0 = torch.exp(-diff_v0)
-      elif self.method == 'inverse-quadratic':
-        diff_u0 = torch.pow(torch.reshape(diff_u0, (-1, self.h)),
-                            2) / self.sigma ** 2
-        diff_v0 = torch.pow(torch.reshape(diff_v0, (-1, self.h)),
-                            2) / self.sigma ** 2
-        diff_u0 = 1 / (1 + diff_u0)  # Inverse quadratic
-        diff_v0 = 1 / (1 + diff_v0)
-      else:
-        raise Exception(
-          f'Wrong kernel method. It should be either thresholding, RBF, '
-          f'inverse-quadratic. But the given value is {self.method}.')
-      diff_u0 = diff_u0.type(torch.float32)
-      diff_v0 = diff_v0.type(torch.float32)
-      a = torch.t(Iy * diff_u0)
-      hists[l, 0, :, :] = torch.mm(a, diff_v0)
-
-      Iu1 = torch.unsqueeze(torch.log(I[:, 1] + EPS) - torch.log(I[:, 0] + EPS),
-                            dim=1)
-      Iv1 = torch.unsqueeze(torch.log(I[:, 1] + EPS) - torch.log(I[:, 2] + EPS),
-                            dim=1)
-      diff_u1 = abs(
-        Iu1 - torch.unsqueeze(torch.tensor(np.linspace(-3, 3, num=self.h)),
-                              dim=0).to(self.device))
-      diff_v1 = abs(
-        Iv1 - torch.unsqueeze(torch.tensor(np.linspace(-3, 3, num=self.h)),
-                              dim=0).to(self.device))
-
-      if self.method == 'thresholding':
-        diff_u1 = torch.reshape(diff_u1, (-1, self.h)) <= self.eps / 2
-        diff_v1 = torch.reshape(diff_v1, (-1, self.h)) <= self.eps / 2
-      elif self.method == 'RBF':
-        diff_u1 = torch.pow(torch.reshape(diff_u1, (-1, self.h)),
-                            2) / self.sigma ** 2
-        diff_v1 = torch.pow(torch.reshape(diff_v1, (-1, self.h)),
-                            2) / self.sigma ** 2
-        diff_u1 = torch.exp(-diff_u1)  # Gaussian
-        diff_v1 = torch.exp(-diff_v1)
-      elif self.method == 'inverse-quadratic':
-        diff_u1 = torch.pow(torch.reshape(diff_u1, (-1, self.h)),
-                            2) / self.sigma ** 2
-        diff_v1 = torch.pow(torch.reshape(diff_v1, (-1, self.h)),
-                            2) / self.sigma ** 2
-        diff_u1 = 1 / (1 + diff_u1)  # Inverse quadratic
-        diff_v1 = 1 / (1 + diff_v1)
-
-      diff_u1 = diff_u1.type(torch.float32)
-      diff_v1 = diff_v1.type(torch.float32)
-      a = torch.t(Iy * diff_u1)
-      hists[l, 1, :, :] = torch.mm(a, diff_v1)
-
-      Iu2 = torch.unsqueeze(torch.log(I[:, 2] + EPS) - torch.log(I[:, 0] + EPS),
-                            dim=1)
-      Iv2 = torch.unsqueeze(torch.log(I[:, 2] + EPS) - torch.log(I[:, 1] + EPS),
-                            dim=1)
-      diff_u2 = abs(
-        Iu2 - torch.unsqueeze(torch.tensor(np.linspace(-3, 3, num=self.h)),
-                              dim=0).to(self.device))
-      diff_v2 = abs(
-        Iv2 - torch.unsqueeze(torch.tensor(np.linspace(-3, 3, num=self.h)),
-                              dim=0).to(self.device))
-      if self.method == 'thresholding':
-        diff_u2 = torch.reshape(diff_u2, (-1, self.h)) <= self.eps / 2
-        diff_v2 = torch.reshape(diff_v2, (-1, self.h)) <= self.eps / 2
-      elif self.method == 'RBF':
-        diff_u2 = torch.pow(torch.reshape(diff_u2, (-1, self.h)),
-                            2) / self.sigma ** 2
-        diff_v2 = torch.pow(torch.reshape(diff_v2, (-1, self.h)),
-                            2) / self.sigma ** 2
-        diff_u2 = torch.exp(-diff_u2)  # Gaussian
-        diff_v2 = torch.exp(-diff_v2)
-      elif self.method == 'inverse-quadratic':
-        diff_u2 = torch.pow(torch.reshape(diff_u2, (-1, self.h)),
-                            2) / self.sigma ** 2
-        diff_v2 = torch.pow(torch.reshape(diff_v2, (-1, self.h)),
-                            2) / self.sigma ** 2
-        diff_u2 = 1 / (1 + diff_u2)  # Inverse quadratic
-        diff_v2 = 1 / (1 + diff_v2)
-      diff_u2 = diff_u2.type(torch.float32)
-      diff_v2 = diff_v2.type(torch.float32)
-      a = torch.t(Iy * diff_u2)
-      hists[l, 2, :, :] = torch.mm(a, diff_v2)
-
-    # normalization
-    hists_normalized = hists / (
-        ((hists.sum(dim=1)).sum(dim=1)).sum(dim=1).view(-1, 1, 1, 1) + EPS)
-
-    return hists_normalized
 
 
 class HistVectorizer(nn.Module):
@@ -559,6 +379,17 @@ class RGBBlock(nn.Module):
 
   def forward(self, x, prev_rgb, istyle):
     style = self.to_style(istyle)
+    x = self.conv(x, style)
+
+    if prev_rgb is not None:
+      x = x + prev_rgb
+
+    if self.upsample is not None:
+      x = self.upsample(x)
+
+    return x
+
+  def forward_(self, x, prev_rgb, style):
     x = self.conv(x, style)
 
     if prev_rgb is not None:
@@ -647,6 +478,29 @@ class GeneratorBlock(nn.Module):
     rgb = self.to_rgb(x, prev_rgb, istyle)
     return x, rgb
 
+  def forward_(self, x, prev_rgb, style1, style2, to_rgb_style,
+               inoise=None, noise1=None, noise2=None, latent=None):
+    if self.upsample is not None:
+      x = self.upsample(x)
+    if noise1 is not None and noise2 is not None:
+      pass
+    elif inoise is None:
+      raise Exception('No noise is given')
+    else:
+      inoise = inoise[:, :x.shape[2], :x.shape[3], :]
+      noise1 = self.to_noise1(inoise).permute((0, 3, 2, 1))
+      noise2 = self.to_noise2(inoise).permute((0, 3, 2, 1))
+
+    x = self.conv1(x, style1)
+    x = self.activation(x + noise1)
+    if latent is not None:
+      x = x + latent
+    x = self.conv2(x, style2)
+    x = self.activation(x + noise2)
+
+    rgb = self.to_rgb.forward_(x, prev_rgb, to_rgb_style)
+    return x, rgb
+
 
 class DiscriminatorBlock(nn.Module):
   def __init__(self, input_channels, filters, downsample=True):
@@ -714,6 +568,7 @@ class Generator(nn.Module):
     return rgb
 
 
+
 class Discriminator(nn.Module):
   def __init__(self, image_size, network_capacity=16, fq_layers=[],
                fq_dict_size=256, attn_layers=[],
@@ -722,7 +577,6 @@ class Discriminator(nn.Module):
     num_layers = int(log2(image_size) - 1)
     num_init_filters = 3 if not transparent else 4
 
-    blocks = []
     filters = [num_init_filters] + [(network_capacity) * (2 ** i) for i in
                                     range(num_layers + 1)]
     chan_in_out = list(zip(filters[0:-1], filters[1:]))
@@ -730,7 +584,6 @@ class Discriminator(nn.Module):
     blocks = []
     quantize_blocks = []
     attn_blocks = []
-
     for ind, (in_chan, out_chan) in enumerate(chan_in_out):
       num_layer = ind + 1
       is_not_last = ind != (len(chan_in_out) - 1)
@@ -872,7 +725,6 @@ class Trainer():
                hist_resizing='sampling', hist_sigma=0.02, hist_bin=64,
                hist_insz=150, aug_prob=0.0, dataset_aug_prob=0.0,
                aug_types=None, *args, **kwargs):
-
     if aug_types is None:
       aug_types = ['translation', 'cutout']
     self.GAN_params = [args, kwargs]
@@ -1008,9 +860,9 @@ class Trainer():
     if self.GAN is None:
       self.init_GAN()
     self.GAN.train()
-    total_disc_loss = torch.tensor(0.).cuda()
-    total_gen_loss = torch.tensor(0.).cuda()
-    total_hist_loss = torch.tensor(0.).cuda()
+    total_disc_loss = torch.tensor(0.0).cuda()
+    total_gen_loss = torch.tensor(0.0).cuda()
+    total_hist_loss = torch.tensor(0.0).cuda()
 
     batch_size = self.batch_size
 
@@ -1052,7 +904,7 @@ class Trainer():
       generated_images = self.GAN.G(w_styles, h_w_space, noise)
       if aug_prob > 0.0:
         fake_output, fake_q_loss = Disc(generated_images.clone().detach(),
-                                         detach=True, **aug_kwargs)
+                                        detach=True, **aug_kwargs)
         real_output, real_q_loss = Disc(image_batch, **aug_kwargs)
       else:
         fake_output, fake_q_loss = Disc(generated_images.clone().detach())
@@ -1236,7 +1088,7 @@ class Trainer():
     w_styles = styles_def_to_tensor(w_space)
     generated_images = evaluate_in_chunks(self.batch_size, G, w_styles,
                                           h_w_space, noi)
-    return generated_images.clamp_(0., 1.)
+    return generated_images.clamp_(0.0, 1.0)
 
   def print_log(self):
     if hasattr(self, 'h_loss'):

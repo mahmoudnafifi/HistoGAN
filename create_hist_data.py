@@ -19,16 +19,17 @@ import torch
 from PIL import Image
 from torchvision import transforms
 import numpy as np
-from os.path import splitext, join, basename, exists
-from os import mkdir
+from os import listdir
+from os.path import isfile, join
 
-filename = './target_images/1.jpg'
-output_dir = './histograms/'
 
-if exists(output_dir) is False:
-  mkdir(output_dir)
+def hist_interpolation(hist1, hist2):
+  ratio = torch.rand(1)
+  return hist1 * ratio + hist2 * (1 - ratio)
+
 
 torch.cuda.set_device(0)
+
 histblock = RGBuvHistBlock(insz=250, h=64,
                            resizing='sampling',
                            method='inverse-quadratic',
@@ -36,10 +37,20 @@ histblock = RGBuvHistBlock(insz=250, h=64,
                            device=torch.cuda.current_device())
 transform = transforms.Compose([transforms.ToTensor()])
 
-img_hist = Image.open(filename)
-img_hist = torch.unsqueeze(transform(img_hist), dim=0).to(
-  device=torch.cuda.current_device())
-histogram = histblock(img_hist)
-histogram = histogram.cpu().numpy()
-np.save(join(output_dir, basename(splitext(filename)[0]) + '.npy'), histogram)
+files = [join('histogram_data', f) for f in listdir('histogram_data') if
+         isfile(join('histogram_data', f))]
+first = True
+for f in files:
+  img_hist = Image.open(f)
+  img_hist = torch.unsqueeze(transform(img_hist), dim=0).to(
+    device=torch.cuda.current_device())
+  h = histblock(img_hist)
+  if first:
+    histograms = h
+    first = False
+  else:
+    histograms = torch.cat((histograms, h), dim=0)
+histograms = torch.unsqueeze(histograms, dim=1)
+histograms = histograms.cpu().numpy()
+np.save('histogram_data/histograms.npy', histograms)
 

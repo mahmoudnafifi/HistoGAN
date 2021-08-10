@@ -15,7 +15,8 @@
 """
 
 from tqdm import tqdm
-from histoGAN import Trainer, NanException, RGBuvHistBlock
+from histoGAN import Trainer, NanException
+from histogram_classes.RGBuvHistBlock import RGBuvHistBlock
 from datetime import datetime
 import torch
 import argparse
@@ -24,6 +25,7 @@ import os
 from PIL import Image
 from torchvision import transforms
 import numpy as np
+
 
 SCALE = 1 / np.sqrt(2.0)
 
@@ -64,6 +66,8 @@ def train_from_folder(
     aug_prob=0.0,
     dataset_aug_prob=0.0,
     aug_types=None):
+
+
   model = Trainer(
     name,
     results_dir,
@@ -97,6 +101,7 @@ def train_from_folder(
     model.clear()
 
   if generate:
+
     now = datetime.now()
     timestamp = now.strftime("%m-%d-%Y_%H-%M-%S")
     if save_noise_latent and not os.path.exists('temp'):
@@ -220,7 +225,7 @@ def get_args():
   parser.add_argument('--learning_rate', dest='learning_rate', default=2e-4,
                       type=float)
   parser.add_argument('--num_workers', dest='num_workers', default=None)
-  parser.add_argument('--save_every', dest='save_every', default=10000,
+  parser.add_argument('--save_every', dest='save_every', default=5000,
                       type=int)
   parser.add_argument('--generate', dest='generate', default=False)
   parser.add_argument('--save_noise_latent', dest='save_n_l', default=False)
@@ -262,7 +267,6 @@ def get_args():
 if __name__ == "__main__":
   args = get_args()
   torch.cuda.set_device(args.gpu)
-
   train_from_folder(
     data=args.data,
     results_dir=args.results_dir,
