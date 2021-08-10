@@ -59,7 +59,7 @@ pip install torch-optimizer
 pip install retry
 ```
 
-You may face some problems in installing `dlib` on Windows via `pip`. It is required only for the face pre-processing option (see below for more details). In order to install `dlib` for Windows, please follow this [link](https://stackoverflow.com/questions/41912372/dlib-installation-on-windows-10). If couldn't install `dlib`, you can comment this [line]() and do not use the `--face_extraction` option for ReHistoGAN. 
+You may face some problems in installing `dlib` on Windows via `pip`. It is required only for the face pre-processing option (see below for more details). In order to install `dlib` for Windows, please follow this [link](https://stackoverflow.com/questions/41912372/dlib-installation-on-windows-10). If couldn't install `dlib`, you can comment this [line](https://github.com/mahmoudnafifi/HistoGAN/blob/1fc4a0e0f3908ca67ea53c7b0996c28b41414e0d/utils/face_preprocessing.py#L2) and do not use the `--face_extraction` option for ReHistoGAN. 
 
 * * *
 
@@ -99,7 +99,7 @@ Shown below is the training progress of HistoGAN when trained on portrait images
   <img width = 50% src="https://user-images.githubusercontent.com/37669469/128811547-8f33511f-fe29-492d-bb64-ea9c4ceeabe1.gif">
 </p>
 
-Note that the shown samples above were generated after training on cropped face images from the original portrait set. Specifically, we extracted ~7,000 faces using [`face_preprocessing.py`](), which applies the FFHQ pre-processing to extract faces. You can download our processed portarit set from [here](https://ln4.sync.com/dl/d7addacf0/b978wvm4-9dndxvh6-hc4ss39y-5hpck6si). Do not forget to also give the credit to the [WikiArt](https://github.com/cs-chan/ArtGAN/tree/master/WikiArt%20Dataset) dataset if you used our processed set.  
+Note that the shown samples above were generated after training on cropped face images from the original portrait set. Specifically, we extracted ~7,000 faces using [`face_preprocessing.py`](https://github.com/mahmoudnafifi/HistoGAN/blob/master/utils/face_preprocessing.py), which applies the FFHQ pre-processing to extract faces. You can download our processed portarit set from [here](https://ln4.sync.com/dl/d7addacf0/b978wvm4-9dndxvh6-hc4ss39y-5hpck6si). Do not forget to also give the credit to the [WikiArt](https://github.com/cs-chan/ArtGAN/tree/master/WikiArt%20Dataset) dataset if you used our processed set.  
 
 #### Testing
 Here is an example of how to generate new samples of a trained histoGAN models named *Faces_histoGAN*:
@@ -166,7 +166,8 @@ As mentioned in the paper, we trained HistoGAN on several datasets. Our pre-trai
 * [Landscape](https://ln3.sync.com/dl/dfdbb5600/r2gzhwtk-5guyb8s8-j6a99c72-excf5kjy)
 
 
-Note that for model names that include `_20`, use  `--network_capacity 20` in testing. If the model name includes `_aug_`, make sure to set `--aug_prob` to any value higher than zero. Below are examples of generated samples from each model. Each shown group of generated images share the same histogram feature. 
+<!-- Note that for model names that include `_20`, use  `--network_capacity 20` in testing. If the model name includes `_aug_`, make sure to set `--aug_prob` to any value higher than zero. Below are examples of generated samples from each model. Each shown group of generated images share the same histogram feature. 
+!-->
 
 * * *
 
