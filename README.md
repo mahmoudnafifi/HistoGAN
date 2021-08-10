@@ -66,7 +66,8 @@ You may face some problems in installing `dlib` on Windows via `pip`. It is requ
 ### Histogram loss 
 We provide a [Colab notebook example](https://colab.research.google.com/drive/1dAF1_oAQ1c8OMLqlYA5V878pmpcnQ6_9?usp=sharing) code to compute our histogram loss. This histogram loss is differentiable and can be easily integrated into any deep learning optimization. 
 
-In the [Colab](https://colab.research.google.com/drive/1dAF1_oAQ1c8OMLqlYA5V878pmpcnQ6_9?usp=sharing) tutorial, we provide different versions of the histogram class to compute histogram loss for different color spaces: uv-RGB, rg-chroma, and CIE Lab. For CIE Lab, input images are supposed to be already in CIE LAB space before computing the loss. 
+In the [Colab](https://colab.research.google.com/drive/1dAF1_oAQ1c8OMLqlYA5V878pmpcnQ6_9?usp=sharing) tutorial, we provide different versions of the histogram class to compute histogram loss for different color spaces: uv-RGB, rg-chroma, and CIE Lab. For CIE Lab, input images are supposed to be already in CIE LAB space before computing the loss. <!--The code is also provided in `./histogram_classes`. In HistoGAN and ReHistoGAN, we trained using uv-RGB histogram features. To use rg-chroma or CIE Lab, you simply replace the code of `RGBuvHistBlock` in `./histoGAN/histoGAN.py` with the code of the target histogram in `./hisotgram_classes`. Note that for the CIE LAB histograms, you need to first convert loaded images into the CIE LAB space in the `Dataset` class in both histoGAN and ReHistoGAN codes. That also requires converting the generated images back to sRGB space before saving them.!-->
+
 
 If you faced issues with memory, please check this [issue](https://github.com/mahmoudnafifi/HistoGAN/issues/8) for potential solutions. 
 
@@ -162,14 +163,21 @@ Very soon!
 As mentioned in the paper, we trained HistoGAN on several datasets. Our pre-trained models were trained using `--network_capacity = 16` and `--image_size = 256` due to hardware limitations. **Better results can be achieved by increasing the network capacity and using attention layers (`--attn_layers`).** Here are examples of our trained models (note: these models include both generator and discriminator nets):
 
 * [Faces](https://ln3.sync.com/dl/ef2cce1a0/c7frehvr-kaexbw44-tvupizhg-xyqjvp98) | [Google Drive mirror](https://drive.google.com/file/d/1jkJBzXsakEtuVEwQqTCBb_R_Kefa2XJ1/view?usp=sharing)
+* [Faces_20]()
 * [Cars](https://ln3.sync.com/dl/5c2bc1a60/y3sx9dnq-m5gcspa5-6zz9d4fd-7j3yemca)
 * [Flowers](https://ln3.sync.com/dl/e869e6d50/pnqiaccc-vtszcvs4-tt7x2y9v-gubvyymm)
 * [Anime](https://ln3.sync.com/dl/13bacb830/u4hm9bcw-hbnfeg8j-pmrwsdjp-iwar8ee8)
 * [Landscape](https://ln3.sync.com/dl/dfdbb5600/r2gzhwtk-5guyb8s8-j6a99c72-excf5kjy)
+* [PortraitFaces](https://ln4.sync.com/dl/f3b08fed0/zdqb9qxe-4wrasq8r-7ihvp73m-zv82vat5)
+* [PortraitFaces_aug]()
+* [PortraitFaces_20_aug]()
 
 
-<!-- Note that for model names that include `_20`, use  `--network_capacity 20` in testing. If the model name includes `_aug_`, make sure to set `--aug_prob` to any value higher than zero. Below are examples of generated samples from each model. Each shown group of generated images share the same histogram feature. 
-!-->
+Note that for model names that include `_20`, use  `--network_capacity 20` in testing. If the model name includes `_aug`, make sure to set `--aug_prob` to any value higher than zero. Below are examples of generated samples from each model. Each shown group of generated images share the same histogram feature. 
+
+
+![pre-trained](https://user-images.githubusercontent.com/37669469/128905351-83b145a9-d045-47b0-835d-05974ef4106d.gif)
+
 
 * * *
 
