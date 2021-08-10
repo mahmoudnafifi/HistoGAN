@@ -191,7 +191,9 @@ Very soon!
 Very soon!
 
 #### Universal ReHistoGAN
-Very soon!
+As the case of most GAN methods, our ReHistoGAN targets a specific object domain to achieve the image recoloring task. This restriction may hinder the generalization
+of our method to deal with images taken from arbitrary domains. To deal with that, we collected images from a different domain, aiming to represent the "universal" object
+domain (see the [supplemental materials](https://openaccess.thecvf.com/content/CVPR2021/supplemental/Afifi_HistoGAN_Controlling_Colors_CVPR_2021_supplemental.pdf) for more details). To train our ReHistoGAN on this "universal" object domain, we used `--network_capacity 18` without any further changes in the original architecture. 
 
 #### Trained models
 * [Faces model-0](https://ln4.sync.com/dl/521ea0f30/gtcq4jy4-736tvuxw-zti2s43q-wyv5wftx)
@@ -210,7 +212,7 @@ The ReHistoGAN code will be available very soon.
 ## Landscape Dataset
 Our collected set of 4K landscape images is available [here](https://ln2.sync.com/dl/1891becc0/uhsxtprq-33wfwmyq-dhhqeb3s-mtstuqw7).
 <p align="center">
-  <img width = 80% src="https://user-images.githubusercontent.com/37669469/100063922-dba70a80-2dff-11eb-9b2d-288f76122e27.jpg">
+  <img width = 100% src="https://user-images.githubusercontent.com/37669469/100063922-dba70a80-2dff-11eb-9b2d-288f76122e27.jpg">
 </p>
 
 
