@@ -94,9 +94,8 @@ There is no clear criterion to stop training, so watching generated samples will
 
 You may need to increase the number of training steps (specified by `--num_train_steps`), if the generator didn't diverge by the end of training. If the network starts generating degraded results after a short period of training, you may either want to reduce the network capacity (specified by `--network_capacity`) or use data augmentation by using `--aug_prob` value that is higher than 0. 
 
-Shown below is the training progress of HistoGAN when trained on portrait images from the [WikiArt](https://github.com/cs-chan/ArtGAN/tree/master/WikiArt%20Dataset) dataset with and without augmentation applied. As shown, the generator starts to generate degraded images after a short training period, while it keeps generating reasonable results when augmentation is applied. 
+Shown below is the training progress of HistoGAN when trained on portrait images with and without augmentation applied. As shown, the generator starts to generate degraded images after a short training period, while it keeps generating reasonable results when augmentation is applied. 
 
-Note that the shown samples below were generated after training on cropped face images from the original portrait set. Specifically, we extracted ~7,000 faces using [`face_preprocessing.py`](https://github.com/mahmoudnafifi/HistoGAN/blob/master/utils/face_preprocessing.py), which applies the FFHQ pre-processing to extract faces. You can download our processed portrait set from [here](https://ln4.sync.com/dl/d7addacf0/b978wvm4-9dndxvh6-hc4ss39y-5hpck6si). Do not forget to also give the credit to the [WikiArt](https://github.com/cs-chan/ArtGAN/tree/master/WikiArt%20Dataset) dataset if you used our processed set.
 
 <p align="center">
   <img width = 50% src="https://user-images.githubusercontent.com/37669469/128811547-8f33511f-fe29-492d-bb64-ea9c4ceeabe1.gif">
@@ -214,6 +213,12 @@ Our collected set of 4K landscape images is available [here](https://ln2.sync.co
   <img width = 80% src="https://user-images.githubusercontent.com/37669469/100063922-dba70a80-2dff-11eb-9b2d-288f76122e27.jpg">
 </p>
 
+
+## Portrait Dataset
+We have extracted face images from the [WikiArt](https://github.com/cs-chan/ArtGAN/tree/master/WikiArt%20Dataset) dataset. This set includes ~7,000 portrait face images. You can download our processed portrait set from [here](https://ln4.sync.com/dl/d7addacf0/b978wvm4-9dndxvh6-hc4ss39y-5hpck6si). If you use this dataset, please cite our paper in addition to the [WikiArt](https://github.com/cs-chan/ArtGAN/tree/master/WikiArt%20Dataset) dataset. This set is provided only for non-commercial research purpose.
+The images in the WikiArt dataset were obtained from [WikiArt.org](https://www.wikiart.org/en/terms-of-use). By using this set, you agree to obey the terms and conditions of [WikiArt.org](https://www.wikiart.org/en/terms-of-use).
+
+![preprocessed_faces](https://user-images.githubusercontent.com/37669469/128927098-242d7301-cefa-4225-a380-0f8579828c39.jpg)
 
 
 ## Acknowledgement
