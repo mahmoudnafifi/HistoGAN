@@ -163,14 +163,14 @@ Very soon!
 As mentioned in the paper, we trained HistoGAN on several datasets. Our pre-trained models were trained using `--network_capacity = 16` and `--image_size = 256` due to hardware limitations. **Better results can be achieved by increasing the network capacity and using attention layers (`--attn_layers`).** Here are examples of our trained models (note: these models include both generator and discriminator nets):
 
 * [Faces](https://ln3.sync.com/dl/ef2cce1a0/c7frehvr-kaexbw44-tvupizhg-xyqjvp98) | [Google Drive mirror](https://drive.google.com/file/d/1jkJBzXsakEtuVEwQqTCBb_R_Kefa2XJ1/view?usp=sharing)
-* [Faces_20]()
+* [Faces_20](https://ln4.sync.com/dl/49c229e50/fr2stver-g36e3km7-qj3vwwtf-qwqa5ufb)
 * [Cars](https://ln3.sync.com/dl/5c2bc1a60/y3sx9dnq-m5gcspa5-6zz9d4fd-7j3yemca)
 * [Flowers](https://ln3.sync.com/dl/e869e6d50/pnqiaccc-vtszcvs4-tt7x2y9v-gubvyymm)
 * [Anime](https://ln3.sync.com/dl/13bacb830/u4hm9bcw-hbnfeg8j-pmrwsdjp-iwar8ee8)
 * [Landscape](https://ln3.sync.com/dl/dfdbb5600/r2gzhwtk-5guyb8s8-j6a99c72-excf5kjy)
 * [PortraitFaces](https://ln4.sync.com/dl/f3b08fed0/zdqb9qxe-4wrasq8r-7ihvp73m-zv82vat5)
-* [PortraitFaces_aug]()
-* [PortraitFaces_20_aug]()
+* [PortraitFaces_aug](https://ln4.sync.com/dl/f061af1b0/t7ukam9v-nk6napgw-krpn2wa9-h2agy8in)
+* [PortraitFaces_20_aug](https://ln4.sync.com/dl/f8e934db0/9bddn4cf-fnhtvkwi-jg4zmpb4-dq8ypv4r)
 
 
 Note that for model names that include `_20`, use  `--network_capacity 20` in testing. If the model name includes `_aug`, make sure to set `--aug_prob` to any value higher than zero. Below are examples of generated samples from each model. Each shown group of generated images share the same histogram feature. 
