@@ -324,7 +324,7 @@ domain (see the [supplemental materials](https://openaccess.thecvf.com/content/C
 
 To test one of our pre-trained "universal" reHistoGAN models (for example, `Universal_rehistoGAN_v0`), use the following command:
 
-```python rehistoGAN.py --name Universal_rehistoGAN_v0 --generate True --input_image ./input_images/ --target_hist ./target_images/ --upsampling_output True --network_capacity 18 --gpu 0```
+```python rehistoGAN.py --name Universal_rehistoGAN_v0 --generate True --input_image ./input_images/other-objects/ --target_hist ./target_images/ --upsampling_output True --network_capacity 18 --gpu 0```
 
 <p align="center">
   <img width = 80% src="https://user-images.githubusercontent.com/37669469/129090905-f274b247-5298-47c8-87cd-1b22f6680b1a.gif">
