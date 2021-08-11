@@ -335,7 +335,7 @@ To test one of our pre-trained "universal" reHistoGAN models (for example, `Univ
 ReHistoGAN shares the same parameters of HistoGAN in addition to some extra parameters, such as:
 * `--generate`: Set to `True` for recoloring input image(s).
 * `--network_capacity`: To control network capacity. In our pre-trained models, we used `--network_capacity 16`. For "universal" reHistoGAN models, we used `--network_capacity 18`. The default value is 16. 
-* `--image_size`: Output image size (should be a power of 2). 
+* `--image_size`: Image size (should be a power of 2). 
 * `--load_histoGAN_weights`: To use pre-trained HistoGAN weights instead of training from scratch. This is only for the weights of the histoGAN's head. 
 * `--histoGAN_model_name`: If `--load_histoGAN_weights` is `True`, then this is the name of the pre-trained HistoGAN model.
 * `--histGAN_models_dir`: If a pre-trained weights used for the histoGAN's head, then this is the directory of the pre-trained HistoGAN model. 
