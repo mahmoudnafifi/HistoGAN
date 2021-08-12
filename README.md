@@ -196,6 +196,9 @@ The final projected image and optimized style will be saved in `XX/histoGAN_mode
 The generated image share a similar appearance with the input image, but it is for a different person! We can apply a simple post-processing upsampling step to pass the colors from the generated image to our input image:
 
 
+`python projection_gaussian.py --name histoGAN_model --input_image ./input_images/41.jpg --generate True --target_hist ./target_images/1.jpg --upsampling_output True --gpu 0`
+
+
 
 <p align="center">
   <img width = 50% src="https://user-images.githubusercontent.com/37669469/129124497-c5759ff7-6dcd-4c2f-adb8-69544b151ac7.jpg">
@@ -340,7 +343,7 @@ As mentioned in the paper, we trained HistoGAN on several datasets. Most of our 
 * [PortraitFaces_20_aug](https://ln4.sync.com/dl/f8e934db0/9bddn4cf-fnhtvkwi-jg4zmpb4-dq8ypv4r)
 
 
-For model names that include `_20`, use  `--network_capacity 20` in testing. If the model name includes `_aug`, make sure to set `--aug_prob` to any value that is higher than zero. Below are examples of generated samples from each model. Each shown group of generated images share the same histogram feature. 
+For model names that include `_20`, use  `--network_capacity 20` in testing. If the model name includes `_aug`, make sure to set `--aug_prob` to any value that is greater than zero. Below are examples of generated samples from each model. Each shown group of generated images share the same histogram feature. 
 
 
 ![pre-trained](https://user-images.githubusercontent.com/37669469/128978234-ffad52f7-3fd6-42e2-8269-65e17f7e05a0.gif)
