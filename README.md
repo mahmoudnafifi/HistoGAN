@@ -514,3 +514,9 @@ The images in the WikiArt dataset were obtained from [WikiArt.org](https://www.w
 
 ## Acknowledgement
 A significant part of this code was was built on top of the [PyTorch implementation](https://github.com/lucidrains/stylegan2-pytorch) of StyleGAN by [Phil Wang](https://github.com/lucidrains).
+
+
+
+## Related Research Projects
+- [Image Recoloring Based on Object Color Distributions](https://github.com/mahmoudnafifi/Image_recoloring): A method to perform automatic image recoloring based on the distribution of colors associated with objects present in an image.
+- [CAMS](https://github.com/mahmoudnafifi/color-aware-style-transfer): A color-aware multi-style transfer method.
