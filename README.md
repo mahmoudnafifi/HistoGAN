@@ -171,13 +171,96 @@ Here, we provide two options for this instance-optimization: (1) optimizing inpu
 
 The provided code allows you also to optimize input noise (non-style noise), that feeds the right part of each block in the shown figure above, either in Gaussian space or in the latent space (i.e., after the "to_latent" projection). 
 
-<!-- 
-To optimize input Gaussian style vectors, use:
+Let's suppose that our input image is `./input_images/41.jpg` and our pre-trained HistoGAN models for faces is named `histoGAN_model`. 
 
+To optimize input Gaussian style vectors, use the following command:
+
+`python projection_gaussian.py --name histoGAN_model --input_image ./input_images/41.jpg --gpu 0`
+
+
+<p align="center">
+  <img width = 35% src="https://user-images.githubusercontent.com/37669469/129124979-6a0711f8-2ecb-441e-9113-dab00ac09556.gif">
+</p>
+
+The final projected image and optimized style will be saved in `XX/histoGAN_model/41`, where `XX` is the result directory specified by `--results_dir`. To recolor the image after optimization with the colors of the image in `./target_images/1.jpg`, you can use this command:
+
+
+`python projection_gaussian.py --name histoGAN_model --input_image ./input_images/41.jpg --generate True --target_hist ./target_images/1.jpg --gpu 0`
+
+
+<p align="center">
+  <img width = 50% src="https://user-images.githubusercontent.com/37669469/129124486-b84dc9c2-1838-4e41-97c2-e46fe6f9f8fd.jpg">
+</p>
+
+
+The generated image share a similar appearance with the input image, but it is for a different person! We can apply a simple post-processing upsampling step to pass colors information from the generated image to our input image:
+
+
+
+<p align="center">
+  <img width = 50% src="https://user-images.githubusercontent.com/37669469/129124497-c5759ff7-6dcd-4c2f-adb8-69544b151ac7.jpg">
+</p>
+
+
+
+To adjust other styles than image colors (for example, the style vector of the fourth and fifth block in the generator), use this command:
+
+`python projection_gaussian.py --name histoGAN_model --input_image ./input_images/41.jpg --generate True --target_hist ./target_images/1.jpg --random_styles 4 5 --gpu 0`
+
+
+
+<p align="center">
+  <img width = 50% src="https://user-images.githubusercontent.com/37669469/129124501-9e476d87-5ed0-41fa-a676-94a63121a047.jpg">
+</p>
 
 
 To optimize after the "to_latent" projection, use:
-!-->
+
+`python projection_to_latent.py --name histoGAN_model --input_image ./input_images/41.jpg --gpu 0`
+
+<p align="center">
+  <img width = 35% src="https://user-images.githubusercontent.com/37669469/129122422-7e7105e6-de4f-4c7b-be62-8701a1330be7.gif">
+</p>
+
+
+Similarly, the final projected image and optimized style will be saved in `XX/histoGAN_model/41`, where `XX` is the result directory specified by `--results_dir`. For recoloring, use:
+
+`python projection_to_latent.py --name histoGAN_model --input_image ./input_images/41.jpg --generate True --target_hist ./target_images/1.jpg --upsampling_output True --gpu 0`
+
+<p align="center">
+  <img width = 50% src="https://user-images.githubusercontent.com/37669469/129122856-751ed483-2c5d-42a6-a3f4-02874457a2cb.jpg">
+</p>
+
+
+To apply a post-processing upsampling, use this command:
+
+`python projection_to_latent.py --name histoGAN_model --input_image ./input_images/41.jpg --generate True --target_hist ./target_images/1.jpg --upsampling_output True --gpu 0`
+
+<p align="center">
+  <img width = 50% src="https://user-images.githubusercontent.com/37669469/129122954-c24d4964-3e4b-435b-a3af-1d4a4af33529.jpg">
+</p>
+
+To adjust other styles than image colors (for example, the style vector of the fifth block in the generator), use this command:
+
+`python projection_to_latent.py --name histoGAN_model --input_image ./input_images/41.jpg --generate True --target_hist ./target_images/1.jpg --random_styles 5 --gpu 0`
+
+<p align="center">
+  <img width = 50% src="https://user-images.githubusercontent.com/37669469/129123027-db81ce52-9473-4f17-ab39-2f6f9ab55b93.jpg">
+</p>
+
+
+Here we randomize new styles for the fourth and fifth blocks in the generator network:
+
+`python projection_to_latent.py --name histoGAN_model --input_image ./input_images/41.jpg --generate True --target_hist ./target_images/1.jpg --random_styles 4 5 --gpu 0`
+
+<p align="center">
+  <img width = 50% src="https://user-images.githubusercontent.com/37669469/129123100-0c0181aa-c94a-4c74-9786-ff4459600dcb.jpg">
+</p>
+
+
+<!--Here are additional examples of optimization results:!-->
+
+
 
 In addition to HistoGAN parameters mentioned above, there are some additional parameters for the optimization code:
 
@@ -190,7 +273,7 @@ In addition to HistoGAN parameters mentioned above, there are some additional pa
 * `--generate`: To generate an output of the optimized style/noise input. This can be set to `True` *only* after finishing the optimization. 
 * `--target_hist`: To use a new target histogram after optimization. This could be: an image, a npy file of the target histogram, or a directory of either images or npy histogram files.
 * `--add_noise`: At inference time (i.e., with `--generate = True`), this option to add random noise to the saved/optimized non-style noise. The default value is `False`.
-* `--random_styles`: A list of histoGAN's blocks that you would like to ignore the values of their optimized style vectors and randomize new style vectors for those blocks. This is only used in the testing phase. The default value is `[]`. 
+* `--random_styles`: A list of histoGAN's blocks that you would like to ignore the values of their optimized style vectors and randomize new style vectors for those blocks. For example, for the first three blocks in the generator network, use `--random_styles 1 2 3`. This is only used in the testing phase. The default value is `[]`. 
 * `--pixel_loss_weight`: L2 regularization factor for the optimized style vectors. 
 * `--noise_reg_weight`: If optimizing either Gaussian or the `to_latent` non-style noise, this is a scale factor of L2 regularization for the optimized noise.
 * `--save_every`: To specify number of optimization steps for saving the output of current input during optimization. 
@@ -212,7 +295,7 @@ Note that you may need to play with the optimization settings (e.g., `--learning
 
 
 
-<!-- There are a couple of fun things to do with this optimization code. For instance: !-->
+<!-- There are a couple of additional fun things to do with this optimization code. For instance: !-->
 
 
 
@@ -329,6 +412,10 @@ To test one of our pre-trained "universal" reHistoGAN models (for example, `Univ
 <p align="center">
   <img width = 80% src="https://user-images.githubusercontent.com/37669469/129090905-f274b247-5298-47c8-87cd-1b22f6680b1a.gif">
 </p>
+
+Again, you can either recolor all images in a directory or apply the recoloring to a single image. You also can recolor input image(s) with a single target image (or a histogram feature) or apply auto recoloring by sampling from a pre-defined set of histograms. 
+
+If recolored images by any model have undesirable artifacts or color bleeding, you can try the `--post_recoloring` option to mitigate such artifacts.
 
 
 #### Parameters
