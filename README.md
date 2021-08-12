@@ -193,7 +193,7 @@ The final projected image and optimized style will be saved in `XX/histoGAN_mode
 </p>
 
 
-The generated image share a similar appearance with the input image, but it is for a different person! We can apply a simple post-processing upsampling step to pass colors information from the generated image to our input image:
+The generated image share a similar appearance with the input image, but it is for a different person! We can apply a simple post-processing upsampling step to pass the colors from the generated image to our input image:
 
 
 
@@ -258,7 +258,14 @@ Here we randomize new styles for the fourth and fifth blocks in the generator ne
 </p>
 
 
-<!--Here are additional examples of optimization results:!-->
+
+Shown below are additional examples of "to_latent" optimization results. As shown, it struggles to optimize for some examples and that results in bad recoloring results. 
+
+
+<p align="center">
+  <img width = 70% src="https://user-images.githubusercontent.com/37669469/129137786-0d4eca2a-2651-4354-ba2a-7c47f67f6645.gif">
+</p>
+
 
 
 
@@ -420,22 +427,15 @@ If recolored images by any model have undesirable artifacts or color bleeding, y
 
 #### Parameters
 ReHistoGAN shares the same parameters of HistoGAN in addition to some extra parameters, such as:
-* `--generate`: Set to `True` for recoloring input image(s).
-* `--network_capacity`: To control network capacity. In our pre-trained models, we used `--network_capacity 16`. For "universal" reHistoGAN models, we used `--network_capacity 18`. The default value is 16. 
-* `--image_size`: Image size (should be a power of 2). 
 * `--load_histoGAN_weights`: To use pre-trained HistoGAN weights instead of training from scratch. This is only for the weights of the histoGAN's head. 
 * `--histoGAN_model_name`: If `--load_histoGAN_weights` is `True`, then this is the name of the pre-trained HistoGAN model.
 * `--histGAN_models_dir`: If a pre-trained weights used for the histoGAN's head, then this is the directory of the pre-trained HistoGAN model. 
-* `--models_dir`: Directory to save rehistoGAN models.
-* `--new`: Set to `True` to train a new model. If `--new = False`, it will start training/evaluation from the last saved model. 
-* `--target_hist`: Target histogram (image, npy file of target histogram, or directory of either images or histogram files). To generate a histogram of images, check [create_hist_sample.py](https://github.com/mahmoudnafifi/HistoGAN/blob/master/create_hist_sample.py). 
 * `--sampling`: To auto recolor input image(s). If `--sampling` is set to `True`, make sure to set `--target_hist` to `None`. Then, it is supposed to have a pre-computed set of target histograms to sample from. This set should be located in `histogram_data/histograms.npy`. To generate this histogram set from a new image set, copy your images into `./histogram_data`, then run [create_hist_data.py.py](https://github.com/mahmoudnafifi/HistoGAN/blob/master/create_hist_data.py).
 * `--target_number`: If `--sampling` is `True`, then this is the number of output recolored images for each single input image. 
 * `--alpha`: Histogram loss scale factor (training).
 * `--beta`: Reconstruction loss scale factor (training).
 * `--gamma`: Discriminator loss scale factor (training).
 * `--change_hyperparameters`: To change the value of `--alpha`, `--beta`, `--gamma` after `X` training steps, where `X` can be specified using `--change_hyperparameters_after`. If `--change_hyperparameters` is `True`, the new values of  `--alpha`, `--beta`, `--gamma` (after the first `X` training steps) can be specificed from [here](https://github.com/mahmoudnafifi/HistoGAN/blob/43ed585dc147309812bc6c4656caff1df5916a63/ReHistoGAN/rehistoGAN.py#L900).
-* `--attn_layers`: To add a self-attention to the designated layer(s) of the discriminator. For example, if you would like to add a self-attention layer after the output of the 1st and 2nd layers, use `--attn_layers 1,2`. In our training, we did not use any attention layers, but it could improve the results if added. 
 * `--rec_loss`: Reconstruction loss options, which includes: `sobel` or `laplacian` (default). 
 * `--variance_loss`: To use variance loss (Equation 9 in the [paper](https://openaccess.thecvf.com/content/CVPR2021/papers/Afifi_HistoGAN_Controlling_Colors_of_GAN-Generated_and_Real_Images_via_Color_CVPR_2021_paper.pdf)). 
 * `--internal_hist`: Internal histogram injection. This was an ablation on a different design of reHistoGAN, but we did not use it the official reHistoGAN. The default value is `False`.
@@ -449,6 +449,18 @@ ReHistoGAN shares the same parameters of HistoGAN in addition to some extra para
 * `--swapping_levels`: The number of lowest levels to swap. For instance, if `--swapping_levels 2` is used, then the last two layers in the pyramid of input and generated images will get swapped.
 * `--level_blending`: If `--upsampling_method` is `pyramid`, setting `--level_blending` to `True` will blend between the remaining pyramid levels. 
 * `--face_extraction`: In testing, to pre-process input face images in the same way used to prepare the training data ([FFHQ](https://github.com/NVlabs/ffhq-dataset)), use `--face_extraction True`. Make sure that `dlib` is successfully installed. 
+
+
+Here are some useful parameters similar to those for HistoGAN: 
+
+* `--models_dir`: Directory to save rehistoGAN models.
+* `--new`: Set to `True` to train a new model. If `--new = False`, it will start training/evaluation from the last saved model. 
+* `--target_hist`: Target histogram (image, npy file of target histogram, or directory of either images or histogram files). To generate a histogram of images, check [create_hist_sample.py](https://github.com/mahmoudnafifi/HistoGAN/blob/master/create_hist_sample.py). 
+* `--attn_layers`: To add a self-attention to the designated layer(s) of the discriminator. For example, if you would like to add a self-attention layer after the output of the 1st and 2nd layers, use `--attn_layers 1,2`. In our training, we did not use any attention layers, but it could improve the results if added. 
+* `--generate`: Set to `True` for recoloring input image(s).
+* `--network_capacity`: To control network capacity. In our pre-trained models, we used `--network_capacity 16`. For "universal" reHistoGAN models, we used `--network_capacity 18`. The default value is 16. 
+* `--image_size`: Image size (should be a power of 2). 
+
 
 
 #### Trained models
