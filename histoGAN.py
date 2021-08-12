@@ -208,8 +208,7 @@ def get_args():
   parser.add_argument('--results_dir', dest='results_dir',
                       default='./results_HistoGAN')
   parser.add_argument('--models_dir', dest='models_dir', default='./models')
-  parser.add_argument('--target_hist', dest='target_hist',
-                      default='./target_images/')
+  parser.add_argument('--target_hist', dest='target_hist', default=None)
   parser.add_argument('--name', dest='name', default='histoGAN_model')
   parser.add_argument('--new', dest='new', default=False)
   parser.add_argument('--load_from', dest='load_from', default=-1)

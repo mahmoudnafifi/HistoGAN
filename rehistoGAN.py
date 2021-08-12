@@ -469,8 +469,7 @@ def get_args():
   parser.add_argument('--histoGAN_model_name', dest='histoGAN_model_name',
                       default=None, type=str)
   parser.add_argument('--target_hist', dest='target_hist', default=None)
-  parser.add_argument('--input_image', dest='input_image',
-                      default='./input_images/other-objects/')
+  parser.add_argument('--input_image', dest='input_image', default=None)
   parser.add_argument('--face_extraction', dest='face_extraction',
                       default=False, type=bool)
   parser.add_argument('--name', dest='name', default='reHistoGAN_model')
