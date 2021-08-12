@@ -301,11 +301,26 @@ Here is a qualitative comparison of using the BGU vs the pyramid swapping.
 Note that you may need to play with the optimization settings (e.g., `--learning_rate`, `--style_reg_weight`, etc.) to get better results. For face images, it is preferred to use the same settings that were used to prepare the training data ([FFHQ](https://github.com/NVlabs/ffhq-dataset)). To crop face region, you can use [face_preprocessing.py](https://github.com/mahmoudnafifi/HistoGAN/blob/master/utils/face_preprocessing.py). If the recolored image suffers from artifacts, you may try to use `--post_recoloring` or use reHistoGAN. 
 
 
-
-<!-- There are a couple of additional fun things to do with this optimization code. For instance: !-->
-
+One can use this projection code to project images into a different domain. For example, let's use our pre-trained histoGAN model [PortraitFaces_aug](https://ln4.sync.com/dl/f061af1b0/t7ukam9v-nk6napgw-krpn2wa9-h2agy8in), that was trained on portrait face painting images, to project a real face image:
 
 
+`python projection_gaussian.py --name PortraitFaces_histoGAN_aug_0.5 --input_image ./input_images/7.jpg --aug_prob 0.5 --style_reg_weight 0  --gpu 0`
+
+
+<p align="center">
+  <img width = 40% src="https://user-images.githubusercontent.com/37669469/129139304-857efaa0-ca61-4d69-aed4-99f900f114a9.gif">
+</p>
+
+
+
+Now, we can recolor this generated portrait using this command:
+
+
+`python projection_gaussian.py --name PortraitFaces_histoGAN_aug_0.5 --input_image ./input_images/7.jpg --aug_prob 0.5 --generate True --target_hist ./target_images --gpu 0`
+
+<p align="center">
+  <img width = 70% src="https://user-images.githubusercontent.com/37669469/129139585-b59ff7e7-0df8-4675-835d-14f3e952f317.jpg">
+</p>
 
 
 
