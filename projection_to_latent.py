@@ -651,13 +651,13 @@ def get_args():
   parser.add_argument('--pixel_loss', dest='pixel_loss', default='L1',
                       help='L1 or L2')
   parser.add_argument('--vgg_loss_weight', dest='vgg_loss_weight',
-                      default=0.001)
+                      default=0.001, type=float)
   parser.add_argument('--pixel_loss_weight', dest='pixel_loss_weight',
-                      default=1.0)
+                      default=1.0, type=float)
   parser.add_argument('--noise_reg_weight', dest='noise_reg_weight',
-                      default=0.0)
+                      default=0.0, type=float)
   parser.add_argument('--style_reg_weight', dest='style_reg_weight',
-                      default=0.0)
+                      default=0.0, type=float)
   parser.add_argument('--trunc_psi', dest='trunc_psi', default=0.75,
                       type=float)
   parser.add_argument('--attn_layers', dest='attn_layers', default=[])
