@@ -367,7 +367,7 @@ To train a reHistoGAN model on a dataset located at `./datasets/faces/`, use the
 
 ```python rehistoGAN.py --name reHistoGAN_model --data ./datasets/faces/ --num_train_steps XX --gpu 0```
 
-`XX` should be replaced with the number of iterations. There is no ideal number of training iterations. You may need to keep training until finds the model started to produce degraded images.
+`XX` should be replaced with the number of iterations. There is no ideal number of training iterations. You may need to keep training until the model starts to produce degraded images.
 
 To use the weights of a pre-trained HistoGAN model located in `./models/histoGAN_model` to initialize the histoGAN's head in the reHistoGAN model, use the following command: 
 
