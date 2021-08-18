@@ -411,19 +411,19 @@ Similarly, you can specify a directory of target images (or npy histogram files)
 ![rehistogan](https://user-images.githubusercontent.com/37669469/128979200-b2b7441f-1cf8-4ade-b138-d0489a843920.gif)
 
 
-For auto recoloring, you should first generate the target histogram set to sample from. This can be done using [create_hist_data.py.py](https://github.com/mahmoudnafifi/HistoGAN/blob/master/create_hist_data.py), which generate this set for you from all images located in `./histogram_data/`. Then, to generate new recolored images of an input image located in `./input_images/1.jpg`, use this command:
+For auto recoloring, you should first generate the target histogram set to sample from. This can be done using [create_hist_data.py.py](https://github.com/mahmoudnafifi/HistoGAN/blob/master/create_hist_data.py), which generate this set for you from all images located in `./histogram_data/`. Then, to generate new recolored images of an input image located in `./input_images/55.jpg`, for example, use this command:
 
-```python rehistoGAN.py --name reHistoGAN_model --generate True --input_image ./input_images/1.jpg --upsampling_output True --sampling True --gpu 0```
+```python rehistoGAN.py --name reHistoGAN_model --generate True --input_image ./input_images/55.jpg --upsampling_output True --sampling True --gpu 0```
 
 This will generate `XX` recolored images for you, where `XX` can be specify using `--target_number`. 
 
 
 <p align="center">
-  <img width = 25% src="https://user-images.githubusercontent.com/37669469/129086015-e50fbae9-8cf5-4f67-ba77-bc7c84aa03a7.gif">
+  <img width = 40% src="https://user-images.githubusercontent.com/37669469/129952110-44c3508f-c6d5-4860-bf51-34e72d3409e1.gif">
 </p>
 
 
-
+For face images, it is preferred to use the same settings that were used to prepare the training data ([FFHQ](https://github.com/NVlabs/ffhq-dataset)). To crop face region, you can use `--face_extraction True`.
 
 #### Universal ReHistoGAN
 As the case of most GAN methods, our reHistoGAN targets a specific object domain to achieve the image recoloring task. This restriction may hinder the generalization
