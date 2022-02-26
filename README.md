@@ -40,6 +40,7 @@ In this paper, we present HistoGAN, a color histogram-based method for controlli
 * pillow
 * linear-attention-transformer (optional)
 * vector-quantize-pytorch (optional)
+* openCV
 * torch-optimizer
 * retry
 * dlib (optional)
@@ -51,6 +52,7 @@ conda activate histoGAN
 conda install pytorch torchvision -c python
 conda install -c conda-forge tqdm
 conda install -c anaconda pillow
+conda install -c conda-forge opencv
 pip install CMake
 pip install dlib
 pip install linear-attention-transformer
