@@ -15,18 +15,13 @@
   year={2021}
 }
 ####
+Portions Copyright (c) 2022 Patrick Levin.
 """
-
+from histogram_classes.HistBlock import EPS, HistBlock
 import torch
-import torch.nn as nn
-import torch.nn.functional as F
-import numpy as np
 
 
-EPS = 1e-6
-
-
-class LabHistBlock(nn.Module):
+class LabHistBlock(HistBlock):
   def __init__(self, h=64, insz=150, resizing='interpolation',
                method='inverse-quadratic', sigma=0.02, intensity_scale=False,
                hist_boundary=None, device='cuda'):
@@ -54,93 +49,37 @@ class LabHistBlock(nn.Module):
          paper, the 'inverse-quadratic' was found more stable than 'RBF' in our
          training.
     """
-    super(LabHistBlock, self).__init__()
-    self.h = h
-    self.insz = insz
-    self.device = device
-    self.resizing = resizing
-    self.method = method
-    self.intensity_scale = intensity_scale
-    if hist_boundary is None:
-      hist_boundary = [0, 1]
-    hist_boundary.sort()
-    self.hist_boundary = hist_boundary
-    if self.method == 'thresholding':
-      self.eps = (abs(hist_boundary[0]) + abs(hist_boundary[1])) / h
-    else:
-      self.sigma = sigma
+    super().__init__(
+      h, insz, resizing, method, sigma, intensity_scale, 
+      hist_boundary or [0, 1], device
+    )
 
   def forward(self, x):
-    x = torch.clamp(x, 0, 1)
-    if x.shape[2] > self.insz or x.shape[3] > self.insz:
-      if self.resizing == 'interpolation':
-        x_sampled = F.interpolate(x, size=(self.insz, self.insz),
-                                  mode='bilinear', align_corners=False)
-      elif self.resizing == 'sampling':
-        inds_1 = torch.LongTensor(
-          np.linspace(0, x.shape[2], self.h, endpoint=False)).to(
-          device=self.device)
-        inds_2 = torch.LongTensor(
-          np.linspace(0, x.shape[3], self.h, endpoint=False)).to(
-          device=self.device)
-        x_sampled = x.index_select(2, inds_1)
-        x_sampled = x_sampled.index_select(3, inds_2)
-      else:
-        raise Exception(
-          f'Wrong resizing method. It should be: interpolation or sampling. '
-          f'But the given value is {self.resizing}.')
-    else:
-      x_sampled = x
+    x_sampled = self.resize(x.clamp(0, 1))
 
-    L = x_sampled.shape[0]  # size of mini-batch
+    N = x_sampled.shape[0]  # size of mini-batch
     if x_sampled.shape[1] > 3:
       x_sampled = x_sampled[:, :3, :, :]
     X = torch.unbind(x_sampled, dim=0)
-    hists = torch.zeros((x_sampled.shape[0], 1, self.h, self.h)).to(
-      device=self.device)
-    for l in range(L):
-      I = torch.t(torch.reshape(X[l], (3, -1)))
-      if self.intensity_scale:
-        Il = torch.unsqueeze(I[:, 0], dim=1)
-      else:
-        Il = 1
+    hists = torch.zeros(N, 1, self.h, self.h, device=self.device)
+    for n in range(N):
+      Ix = X[n].reshape(3, -1).t()
 
-      Ia = torch.unsqueeze(I[:, 1], dim=1)
-      Ib = torch.unsqueeze(I[:, 2], dim=1)
+      Ia = Ix[:, 1].unsqueeze(dim=1)
+      Ib = Ix[:, 2].unsqueeze(dim=1)
 
-      diff_a = abs(Ia - torch.unsqueeze(torch.tensor(np.linspace(
-        self.hist_boundary[0], self.hist_boundary[1], num=self.h)),
-        dim=0).to(self.device))
-      diff_b = abs(Ib - torch.unsqueeze(torch.tensor(np.linspace(
-        self.hist_boundary[0], self.hist_boundary[1], num=self.h)),
-        dim=0).to(self.device))
+      diff_a = (Ia - self.delta).abs()
+      diff_b = (Ib - self.delta).abd()
 
-      if self.method == 'thresholding':
-        diff_a = torch.reshape(diff_a, (-1, self.h)) <= self.eps / 2
-        diff_b = torch.reshape(diff_b, (-1, self.h)) <= self.eps / 2
-      elif self.method == 'RBF':
-        diff_a = torch.pow(torch.reshape(diff_a, (-1, self.h)),
-                           2) / self.sigma ** 2
-        diff_b = torch.pow(torch.reshape(diff_b, (-1, self.h)),
-                           2) / self.sigma ** 2
-        diff_a = torch.exp(-diff_a)  # Gaussian
-        diff_b = torch.exp(-diff_b)
-      elif self.method == 'inverse-quadratic':
-        diff_a = torch.pow(torch.reshape(diff_a, (-1, self.h)),
-                           2) / self.sigma ** 2
-        diff_b = torch.pow(torch.reshape(diff_b, (-1, self.h)),
-                           2) / self.sigma ** 2
-        diff_a = 1 / (1 + diff_a)  # Inverse quadratic
-        diff_b = 1 / (1 + diff_b)
+      diff_a = self.kernel(diff_a)
+      diff_b = self.kernel(diff_b)
+      Iy = self.scaling(Ix)
+      a = torch.t(Iy * diff_a)
 
-      diff_a = diff_a.type(torch.float32)
-      diff_b = diff_b.type(torch.float32)
-      a = torch.t(Il * diff_a)
-
-      hists[l, 0, :, :] = torch.mm(a, diff_b)
+      hists[n, 0, :, :] = torch.mm(a, diff_b)
 
     # normalization
-    hists_normalized = hists / (
-        ((hists.sum(dim=1)).sum(dim=1)).sum(dim=1).view(-1, 1, 1, 1) + EPS)
+    norm = hists.view(-1, self.h * self.h).sum(dim=1).view(-1, 1, 1, 1) + EPS
+    hists_normalized = hists / norm
 
     return hists_normalized
